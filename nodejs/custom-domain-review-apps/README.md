@@ -93,6 +93,8 @@ async function run() {
 }
 ```
 
+There might be a delay between when Heroku is able to assign your review app a certificate and when the Route 53 DNS updates with the new CNAME. If that's the case, give it a few minutes as Heroku will automatically retry to assign the certificate.
+
 ### bin/pr-predestroy.js
 
 The configuration setup is the same as `postdeploy.js`. Since Heroku will handle destroying of our review app, we're mostly concerned with clearing the old CNAME record in Route53 so we don't have unused records piling up. 
