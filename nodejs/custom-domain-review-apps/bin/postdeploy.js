@@ -27,28 +27,29 @@ async function run() {
     }
   }).then(app => {
     const newCname = app.cname;
+    const res = await route53.listHostedZones().promise();
+    const zoneId = res.HostedZones.find(zone => zone.Name === 'iconnections.io.').Id;
+
+    // Create new Domain
+    const changeRes = await route53.changeResourceRecordSets({
+      HostedZoneId: zoneId,
+      ChangeBatch: {
+        Changes: [{ 
+          Action: 'CREATE',
+          ResourceRecordSet: {
+            Name: hostName,
+            Type: 'CNAME',
+            TTL: 60, // 1 minute
+            ResourceRecords: [{ Value: newCname }] // domain from Heroku
+          }
+        }]
+      }
+    }).promise();
+    console.log(changeRes);
 
     // Turns on automatic certificate management
     heroku.post(`/apps/${appName}/acm`).then(async (appAcm) => {
-      const res = await route53.listHostedZones().promise();
-      const zoneId = res.HostedZones.find(zone => zone.Name === 'yourdomain.com.').Id; // Find the hosted zone for your domain in Route 53
-
-      // Create new CNAME in Route 53
-      const changeRes = await route53.changeResourceRecordSets({
-        HostedZoneId: zoneId,
-        ChangeBatch: {
-          Changes: [{ 
-            Action: 'CREATE',
-            ResourceRecordSet: {
-              Name: hostName,
-              Type: 'CNAME',
-              TTL: 60, // 1 minute
-              ResourceRecords: [{ Value: newCname }] // domain from Heroku
-            }
-          }]
-        }
-      }).promise();
-      console.log(changeRes);
+      console.log(appAcm);
     });
   });
 }
