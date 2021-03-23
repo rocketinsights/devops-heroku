@@ -10,11 +10,11 @@ In order for our review apps to successfully share cookies and talk to the API s
 
 Furthermore, Chrome recently enacted a change where cookies cannot be shared across protocols, even if the domain is the same. Now we have to make sure that we have a secure review app at `https://my-great-feature.clientdomain.com`.
 
-(Whichever server you're using also needs to configure you cookie to work across subdomains. That configuration will vary depending on your stack.)
+(Whichever server you're using also needs to configure your cookie to work across subdomains. That configuration will vary depending on your stack.)
 
 ## Cool backstory, show me the code
 
-So What to do? If you're using "new" review apps, we take care of all this configuration in an [app.json](https://devcenter.heroku.com/articles/app-json-schema) at the root of your project by using the `postdeploy` and `pr-predestroy` keys. Here we specify scripts to be run once after an app is created and when the review app is destroyed.
+If you're using "new" review apps, we take care of all this configuration in an [app.json](https://devcenter.heroku.com/articles/app-json-schema) at the root of your project by using the `postdeploy` and `pr-predestroy` keys. Here we specify scripts to be run once after an app is created and when the review app is destroyed.
 
 > Note: The `postdeploy` script will be run once after _any_ app is created, including non-review apps. If the app already exists, this script will not be run on subsequent pushes.
 
