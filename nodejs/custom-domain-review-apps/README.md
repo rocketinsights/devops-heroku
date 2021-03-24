@@ -1,16 +1,16 @@
 # Heroku Review Apps with Automated Custom Domains on Route 53
 
-We were setting up a Next.js project for a client that handled most business logic through an external API, including authentication and cookie handling. We also transitioned the client to Heroku and their build pipeline for [review apps](https://devcenter.heroku.com/articles/github-integration-review-apps), staging, and production deploys. The client handled their domains through [AWS's Route 53](https://aws.amazon.com/route53/) DNS service. Pointing their CNAME records for staging and production to the Heroku instances was easy enough, but enabling review apps is a different story.
+We were recently transitioning a client to use Heroku build pipelines for their Next.js project that handles most business logic through an external API, including authentication and cookie handling. This pipeline uses Heroku's [review apps](https://devcenter.heroku.com/articles/github-integration-review-apps) as well as separate instances for staging and production environments. The client handled their domains through [AWS's Route 53](https://aws.amazon.com/route53/) DNS service. Pointing their CNAME records for staging and production to the Heroku instances was easy enough, but enabling review apps is a different story.
 
 ## Review apps
 
 When working on feature work it's incredibly useful to be able to poke around a standalone instance of the feature branch outside of the developer's local machine. This is useful for code reviewers and stakeholders to sign off on functionality and design as well as developers to ensure their code works in a staging environment. Heroku allows for automatic creation of a review app when a pull request is opened on github. Once that pull request is merged or closed, the review app is destroyed. 
 
-In order for our review apps to successfully share cookies and talk to the API server at `https://api.clientdomain.com`, we needed to ensure that they shared the same domain. By default, review app domains are assigned a name based off the branch name, like `http://my-great-feature.herokuapp.com`. We needed to make sure we could access this branch at `http://my-great-feature.clientdomain.com`. You can configure this in the UIs of Heroku and AWS, but doing this manually for every review app is untenable.
+In order for our review apps to successfully share cookies and talk to the API server at `https://api.clientdomain.com`, we needed to ensure that they shared the same domain. By default, review app domains are assigned a name based off of the branch name, like `http://my-great-feature.herokuapp.com`. We needed to make sure we could access this branch at `http://my-great-feature.clientdomain.com`. You can configure this in the UIs of Heroku and AWS, but doing this manually for every review app is untenable.
 
 Furthermore, Chrome recently enacted a change where cookies cannot be shared across protocols, even if the domain is the same. Now we have to make sure that we have a secure review app at `https://my-great-feature.clientdomain.com`.
 
-(Whichever server you're using also needs to configure your cookie to work across subdomains. That configuration will vary depending on your stack.)
+> Whatever stack you're using on the API side of things will need to have cookies configured appropriately.
 
 ## Cool backstory, show me the code
 
@@ -51,7 +51,7 @@ const route53 = new AWS.Route53();
 run().catch(err => console.log(err));
 ```
 
-Once we get into the main `run` function, Heroku makes available some other configuation variables available to us automatically, `HEROKU_APP_NAME`, `HEROKU_BRANCH`, and `HEROKU_PR_NUMBER`. We'll only make use of `HEROKU_APP_NAME`.
+Once we get into the main `run` function, Heroku makes a few other configuration variables available to us automatically: `HEROKU_APP_NAME`, `HEROKU_BRANCH`, and `HEROKU_PR_NUMBER`. We'll only make use of `HEROKU_APP_NAME`.
 
 ```js
 async function run() {
@@ -99,7 +99,7 @@ There might be a delay between when Heroku is able to assign your review app a c
 
 The configuration setup is the same as `postdeploy.js`. Since Heroku will handle destroying of our review app, we're mostly concerned with clearing the old CNAME record in Route53 so we don't have unused records piling up. 
 
-> The same 3 Heroku-injected configuration variables that are available to us in postdeploy.js are also available in pr-predestroy. The Heroku documentation does not make that clear
+> The same 3 Heroku-injected configuration variables that are available to us in postdeploy.js are also available in pr-predestroy. The Heroku documentation does not make that clear.
 
 ```js
 async function run() {
