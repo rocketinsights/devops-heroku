@@ -1,0 +1,1 @@
+### Sample repo for [How to enable Heroku review apps with secure custom domains on Route 53](blog.rocketinsights.com/heroku-review-apps/). 

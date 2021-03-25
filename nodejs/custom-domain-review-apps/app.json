@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "postdeploy": "node bin/postdeploy.js",
+    "pr-predestroy": "node bin/pr-predestroy.js"
+  }
+}
